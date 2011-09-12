@@ -13,6 +13,7 @@ Spreadsheet names can be passed as a ';' (colon) deliited string. Filename or wo
 
 *******************************************************DEPLOYMENT***************************************************************************
 The plugin is expected to be deployed along with 'org.eclipse.birt.report.data.oda.excel.ui' plugin.
+Extract the lib.zip into lib.
 Import both of these plugin projects in excel and export using the plugin manifest file. The exported jars are to be placed in the dropins folder of eclipse installation.
 
 Visit: http://wiki.eclipse.org/Birt_3.7_Migration_Guide#Custom_Extension_Point_Implementations
