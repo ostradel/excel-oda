@@ -1,4 +1,4 @@
-********************************************************org.eclipse.birt.report.data.oda.excel.ui(v 1.0)******************************************************
+***********************************************org.eclipse.birt.report.data.oda.excel.ui(v 1.0)******************************************************
 Plugin Name: org.eclipse.birt.report.data.oda.excel.ui
 Contributor: Megha Nidhi Dahal (http://www.birt-exchange.org/org/forum/index.php/user/28183-arpan/)
 Tags: Native Excel ODA, xls, xlsx, open data access, ODA Framework, Excel ODA, BIRT, Eclipse BIRT
