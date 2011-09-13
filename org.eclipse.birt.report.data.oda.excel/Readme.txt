@@ -1,4 +1,4 @@
-********************************************************org.eclipse.birt.report.data.oda.excel(v 1.0)******************************************************
+************************************************org.eclipse.birt.report.data.oda.excel(v 1.0)******************************************************
 Plugin Name: org.eclipse.birt.report.data.oda.excel
 Contributor: Megha Nidhi Dahal (http://www.birt-exchange.org/org/forum/index.php/user/28183-arpan/)
 Tags: Native Excel ODA, xls, xlsx, open data access, ODA Framework, Excel ODA, BIRT, Eclipse BIRT
@@ -9,7 +9,7 @@ Plugin Dependencies: POI(http://poi.apache.org/), org.eclipse.core.runtime, org.
 *******************************************************PLUGIN DESCRIPTION*******************************************************************
 org.eclipse.birt.report.data.oda.excel ODA extension supports Native Microsoft xls, xlsx workbook to be used as data source. It supports data spanning across multiple spreadsheets. However, number of columns and fields should be consistent for one set of data.
 
-Spreadsheet names can be passed as a ';' (colon) deliited string. Filename or workbook name cannot be changed, it should be the same used during configuration of the data set.
+Spreadsheet names can be passed as a ';' (colon) delimited string. Filename or workbook name cannot be changed, it should be the same used during configuration of the data set.
 
 *******************************************************DEPLOYMENT***************************************************************************
 The plugin is expected to be deployed along with 'org.eclipse.birt.report.data.oda.excel.ui' plugin.
