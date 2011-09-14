@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -53,9 +52,10 @@ public class ExcelFileReader {
 
 		List<String> rowData = new ArrayList<String>();
 
-		Iterator<?> iterator = row.cellIterator();
-		while (iterator.hasNext()) {
-			Cell cell = (Cell) iterator.next();
+		short minColIx = row.getFirstCellNum();
+		short maxColIx = row.getLastCellNum();
+		for (short colIx = minColIx; colIx < maxColIx; colIx++) {
+			Cell cell = row.getCell(colIx);
 			rowData.add(getCellValue(cell));
 		}
 
@@ -71,6 +71,7 @@ public class ExcelFileReader {
 		workBook = isXlsxFile(fileExtension) ? new XSSFWorkbook(fis)
 				: new HSSFWorkbook(fis);
 
+		workBook.setMissingCellPolicy(Row.RETURN_NULL_AND_BLANK);
 		sheet = workBook.getSheet(workSheetList.get(currentSheetIndex));
 		maxRowsInThisSheet = sheet.getPhysicalNumberOfRows();
 
@@ -90,8 +91,9 @@ public class ExcelFileReader {
 		do {
 			sheet = workBook.getSheet(workSheetList.get(currentSheetIndex));
 			maxRowsInThisSheet = sheet.getPhysicalNumberOfRows();
-		} while (maxRowsInThisSheet == 0 && (workSheetList.size() < ++currentSheetIndex));
-		
+		} while (maxRowsInThisSheet == 0
+				&& (workSheetList.size() < ++currentSheetIndex));
+
 		if (maxRowsInThisSheet == 0)
 			return false;
 
