@@ -4,12 +4,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -25,12 +29,15 @@ public class ExcelFileReader {
 
 	private Workbook workBook;
 	private Sheet sheet;
+	private FormulaEvaluator formulaEvaluator;
 
 	private boolean isInitialised;
 
 	private int maxRowsInAllSheet;
 	private int maxRowsInThisSheet;
 	private int currentRowIndex = 0;
+	
+	private DateFormat dateFormat = new ExcelStyleDateFormatter();
 
 	public ExcelFileReader(FileInputStream fis, String fileExtension,
 			List<String> sheetNameList) {
@@ -70,7 +77,8 @@ public class ExcelFileReader {
 	private void initialise() throws IOException {
 		workBook = isXlsxFile(fileExtension) ? new XSSFWorkbook(fis)
 				: new HSSFWorkbook(fis);
-
+		formulaEvaluator = workBook.getCreationHelper()
+				.createFormulaEvaluator();
 		workBook.setMissingCellPolicy(Row.RETURN_NULL_AND_BLANK);
 		sheet = workBook.getSheet(workSheetList.get(currentSheetIndex));
 		maxRowsInThisSheet = sheet.getPhysicalNumberOfRows();
@@ -105,55 +113,48 @@ public class ExcelFileReader {
 		return !extension.equals(ExcelODAConstants.XLS_FORMAT);
 	}
 
-	public static String getCellValue(Cell cell) {
+	public String getCellValue(Cell cell) {
 		if (cell == null)
 			return ExcelODAConstants.EMPTY_STRING;
 
-		switch (cell.getCellType()) {
-		case Cell.CELL_TYPE_FORMULA:
+		if (cell.getCellType() == Cell.CELL_TYPE_FORMULA) {
 			return resolveFormula(cell);
-		case Cell.CELL_TYPE_BLANK:
-			return ExcelODAConstants.EMPTY_STRING;
-		case Cell.CELL_TYPE_BOOLEAN:
-			return ((Boolean) cell.getBooleanCellValue()).toString();
-		case Cell.CELL_TYPE_NUMERIC:
-			return ((Double) cell.getNumericCellValue()).toString();
-		case Cell.CELL_TYPE_STRING:
-			return cell.getStringCellValue();
-		default:
-			return ExcelODAConstants.EMPTY_STRING;
 		}
+
+		if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+			if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
+				Date date = cell.getDateCellValue();
+				return dateFormat.format(date);
+			}
+
+			return ((Double) cell.getNumericCellValue()).toString();
+		}
+
+		return cell.toString();
 	}
 
-	private static String resolveFormula(Cell cell) {
-		try {
-			Double value = cell.getNumericCellValue();
-			return value == null ? null : value.toString();
-		} catch (Exception e) {
-			// do nothing
-		}
-		try {
-			Date value = cell.getDateCellValue();
-			return value == null ? null : value.toString();
-		} catch (Exception e) {
-			// do nothing
-		}
+	private String resolveFormula(Cell cell) {
+		if (formulaEvaluator == null)
+			return cell.toString();
 
-		try {
-			Boolean value = cell.getBooleanCellValue();
-			return value == null ? null : value.toString();
-		} catch (Exception e) {
-			// do nothing
-		}
+		switch (formulaEvaluator.evaluateFormulaCell(cell)) {
+		case Cell.CELL_TYPE_BOOLEAN:
+			return ((Boolean) cell.getBooleanCellValue()).toString();
 
-		try {
-			String value = cell.getStringCellValue();
-			return value;
-		} catch (Exception e) {
-			// do nothing
-		}
+		case Cell.CELL_TYPE_NUMERIC:
+			if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
+				Date date = cell.getDateCellValue();
+				return dateFormat.format(date);
+			}
 
-		return null;
+			return ((Double) cell.getNumericCellValue()).toString();
+
+		case Cell.CELL_TYPE_STRING:
+			return cell.getStringCellValue();
+
+		default:
+			return null;
+		}
 	}
 
 	public int getMaxRows() throws IOException {
