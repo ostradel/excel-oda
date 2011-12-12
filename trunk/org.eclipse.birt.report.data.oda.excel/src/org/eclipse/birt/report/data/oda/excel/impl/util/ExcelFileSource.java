@@ -35,6 +35,11 @@ public class ExcelFileSource {
 	private String[] originalColumnNames;
 	private boolean isFirstTimeToReadSourceData = true;
 	private List<String> nextDataLine;
+	private String dateFormatString;
+
+	public String getDateFormatString() {
+		return dateFormatString;
+	}
 
 	/**
 	 * Constructor
@@ -43,6 +48,7 @@ public class ExcelFileSource {
 	 *            Connection properties
 	 * @param currentTableName
 	 *            The current table name of this connection
+	 * @param dateFormatString
 	 * @param statementMaxRows
 	 *            The max number of rows specified in the query
 	 * @param rsmd
@@ -52,13 +58,14 @@ public class ExcelFileSource {
 	 * @throws OdaException
 	 */
 	public ExcelFileSource(Properties connProperties, String currentTableName,
-			String workSheetNames, int statementMaxRows,
-			IResultSetMetaData rsmd, ResultSetMetaDataHelper rsmdHelper)
-			throws OdaException {
+			String workSheetNames, String dateFormatString,
+			int statementMaxRows, IResultSetMetaData rsmd,
+			ResultSetMetaDataHelper rsmdHelper) throws OdaException {
 		this.rsmd = rsmd;
 		this.rsmdHelper = rsmdHelper;
 		this.statementMaxRows = statementMaxRows;
 		this.currentTableName = currentTableName;
+		this.dateFormatString = dateFormatString;
 		this.fileExtension = extractFileExtension(currentTableName);
 		Properties properties = getCopyOfConnectionProperties(connProperties);
 		populateHomeDir(properties);
@@ -168,7 +175,7 @@ public class ExcelFileSource {
 			String dataFilePath = findDataFileAbsolutePath();
 			FileInputStream fis = new FileInputStream(dataFilePath);
 			ExcelFileReader excelreader = new ExcelFileReader(fis,
-					fileExtension, sheetNameList);
+					fileExtension, sheetNameList, dateFormatString);
 			List<String> columnLine;
 			while (isEmptyRow(columnLine = excelreader.readLine())) {
 				continue;
@@ -406,7 +413,7 @@ public class ExcelFileSource {
 			if (this.excelFileReader == null) {
 				String dataFilePath = findDataFileAbsolutePath();
 				this.excelFileReader = new ExcelFileReader(new FileInputStream(
-						dataFilePath), this.fileExtension, this.sheetNameList);
+						dataFilePath), this.fileExtension, this.sheetNameList, dateFormatString);
 			}
 
 		} catch (IOException e) {
