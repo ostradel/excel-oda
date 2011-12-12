@@ -50,6 +50,7 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -63,6 +64,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 
@@ -84,6 +86,7 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 	private static String originalName = Messages
 			.getString("editor.title.originalName"); //$NON-NLS-1$
 	private static String dataType = Messages.getString("editor.title.type"); //$NON-NLS-1$
+	private String dateFormat = ExcelODAConstants.DEFAULT_DATE_FORMAT;
 
 	private static String[] dataTypeDisplayNames = new String[] {
 			Messages.getString("datatypes.dateTime"), //$NON-NLS-1$
@@ -105,6 +108,7 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 
 	private transient ComboViewer fileViewer = null;
 	private transient ComboViewer worksheetsCombo = null;
+	private transient Text dateFormatText = null;
 	private transient List availableList = null;
 	private transient TableViewer selectedColumnsViewer = null;
 	private transient Button btnAdd = null;
@@ -228,6 +232,12 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 			currentSheetName = dataSetDesign.getPublicProperties().getProperty(
 					ExcelODAConstants.CONN_WORKSHEETS_PROP);
 		}
+		if (dataSetDesign.getPublicProperties() != null) {
+			dateFormat = dataSetDesign.getPublicProperties().getProperty(
+					ExcelODAConstants.CONN_DATE_FORMAT_PROP);
+			dateFormat = dateFormat == null ? ExcelODAConstants.DEFAULT_DATE_FORMAT : dateFormat.trim();
+			dateFormatText.setText(dateFormat);
+		}
 		/*
 		 * Optionally honor the request for an editable or read-only design
 		 * session isSessionEditable();
@@ -312,7 +322,7 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 	private void createTopComposite(Composite composite, Label label) {
 		FormData data = new FormData();
 		data.left = new FormAttachment(label, 5);
-		data.right = new FormAttachment(50, -5);
+		data.right = new FormAttachment(40, -5);
 		fileViewer = new ComboViewer(composite, SWT.BORDER | SWT.READ_ONLY);
 		fileViewer.getControl().setLayoutData(data);
 		fileViewer.setContentProvider(new ArrayContentProvider());
@@ -349,11 +359,26 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 
 		data = new FormData();
 		data.left = new FormAttachment(label, 5);
-		data.right = new FormAttachment(100, -5);
+		data.right = new FormAttachment(80, -5);
 		worksheetsCombo = new ComboViewer(composite, SWT.BORDER | SWT.READ_ONLY);
 		worksheetsCombo.getControl().setLayoutData(data);
 		worksheetsCombo.setContentProvider(new ArrayContentProvider());
 		worksheetsCombo.addSelectionChangedListener(this);
+		
+		data = new FormData();
+		data.left = new FormAttachment(worksheetsCombo.getControl(), 5);
+		data.top = new FormAttachment(0, 5);
+		
+		label = new Label(composite, SWT.NONE);
+		label.setText(Messages.getString("label.dateFormat")); //$NON-NLS-1$
+		label.setLayoutData(data);
+		
+		data = new FormData();
+		data.left = new FormAttachment(label, 5);
+		data.right = new FormAttachment(100, -5);
+		dateFormatText = new Text(composite, SWT.BORDER);
+		dateFormatText.setLayoutData(data);
+		dateFormatText.setText(dateFormat);
 	}
 
 	/**
@@ -777,7 +802,7 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 	}
 
 	/**
-	 * replace the element in the saved selected columns informaiton list
+	 * replace the element in the saved selected columns information list
 	 * 
 	 * @param element
 	 *            the selected element
@@ -888,6 +913,10 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 		if (dataSetDesign.getPublicProperties() != null) {
 			currentSheetName = dataSetDesign.getPublicProperties().getProperty(
 					ExcelODAConstants.CONN_WORKSHEETS_PROP);
+		}
+		if (dataSetDesign.getPublicProperties() != null) {
+			dateFormat = dataSetDesign.getPublicProperties().getProperty(
+					ExcelODAConstants.CONN_DATE_FORMAT_PROP);
 		}
 	}
 
@@ -1514,8 +1543,8 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 	 */
 	private void savePage(DataSetDesign dataSetDesign) {
 		String queryText = getQueryText();
-		if (queryText.equals(dataSetDesign.getQueryText()))
-			return;
+		/*if (queryText.equals(dataSetDesign.getQueryText()))
+			return;*/
 		dataSetDesign.setQueryText(queryText);
 
 		// obtain query's result set metadata, and update
@@ -1569,6 +1598,15 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 						.findProperty(ExcelODAConstants.CONN_WORKSHEETS_PROP)
 						.setNameValue(ExcelODAConstants.CONN_WORKSHEETS_PROP,
 								currentSheetName);
+			if (dataSetDesign.getPublicProperties().findProperty(
+					ExcelODAConstants.CONN_DATE_FORMAT_PROP) != null)
+				dateFormat = dateFormatText.getText();
+			dateFormat = dateFormat != null ? dateFormat.trim() : ExcelODAConstants.DEFAULT_DATE_FORMAT;
+				dataSetDesign
+						.getPublicProperties()
+						.findProperty(ExcelODAConstants.CONN_DATE_FORMAT_PROP)
+						.setNameValue(ExcelODAConstants.CONN_DATE_FORMAT_PROP,
+								dateFormat);
 		}
 
 	}

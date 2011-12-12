@@ -67,6 +67,7 @@ public class ExcelFileQuery implements IQuery {
 	private ResultSetMetaDataHelper resultSetMetaDataHelper;
 
 	private String worksheetNames;
+	private String dateFormatString = ExcelODAConstants.DEFAULT_DATE_FORMAT;
 
 	private String savedSelectedColInfo;
 
@@ -185,7 +186,8 @@ public class ExcelFileQuery implements IQuery {
 	 */
 	private void prepareMetaData() throws OdaException {
 		ExcelFileSource excelFileReader = new ExcelFileSource(connProperties,
-				currentTableName, worksheetNames, 0, null, null);
+				currentTableName, worksheetNames, dateFormatString, 0, null,
+				null);
 
 		String[] allColumnNames;
 		String[] allColumnTypes;
@@ -332,7 +334,8 @@ public class ExcelFileQuery implements IQuery {
 	 * @param queryColumnNames
 	 * @return
 	 */
-	private Vector<String> stripFormatInfoFromQueryColumnNames(Vector<String> queryColumnNames) {
+	private Vector<String> stripFormatInfoFromQueryColumnNames(
+			Vector<String> queryColumnNames) {
 		Vector<String> columnNames = new Vector<String>();
 
 		boolean isEscaped = false;
@@ -477,7 +480,8 @@ public class ExcelFileQuery implements IQuery {
 	private String[] discoverActualColumnMetaData(String metaDataType,
 			String tableName) throws OdaException {
 		ExcelFileSource excelFileSource = new ExcelFileSource(
-				this.connProperties, tableName, worksheetNames, 0, null, null);
+				this.connProperties, tableName, worksheetNames,
+				dateFormatString, 0, null, null);
 		try {
 			if (!(metaDataType.trim().equalsIgnoreCase(NAME_LITERAL) || metaDataType
 					.trim().equalsIgnoreCase(TYPE_LITERAL)))
@@ -636,14 +640,14 @@ public class ExcelFileQuery implements IQuery {
 	 * @see org.eclipse.datatools.connectivity.oda.IQuery#executeQuery()
 	 */
 	public IResultSet executeQuery() throws OdaException {
-		if(this.isInvalidQuery)
+		if (this.isInvalidQuery)
 			throw new OdaException(
 					Messages.getString("query_COMMAND_NOT_VALID")); //$NON-NLS-1$
-		
+
 		return new ResultSet(new ExcelFileSource(this.connProperties,
-				this.currentTableName, worksheetNames, this.maxRows,
-				this.resultSetMetaData, this.resultSetMetaDataHelper),
-				this.resultSetMetaData);
+				this.currentTableName, worksheetNames, this.dateFormatString,
+				this.maxRows, this.resultSetMetaData,
+				this.resultSetMetaDataHelper), this.resultSetMetaData);
 	}
 
 	/*
@@ -654,6 +658,11 @@ public class ExcelFileQuery implements IQuery {
 	public void setProperty(String name, String value) throws OdaException {
 		if (name.equals(ExcelODAConstants.CONN_WORKSHEETS_PROP))
 			this.worksheetNames = value;
+		if (name.equals(ExcelODAConstants.CONN_DATE_FORMAT_PROP)) {
+			if (name == null || name.trim().equals(""))
+				throw new OdaException(Messages.getString("date_format_null"));
+			this.dateFormatString = value;
+		}
 	}
 
 	/*

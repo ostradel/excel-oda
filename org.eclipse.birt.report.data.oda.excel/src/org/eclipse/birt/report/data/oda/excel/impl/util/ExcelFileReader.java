@@ -12,7 +12,6 @@ import java.util.List;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.ExcelStyleDateFormatter;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -37,13 +36,14 @@ public class ExcelFileReader {
 	private int maxRowsInThisSheet;
 	private int currentRowIndex = 0;
 	
-	private DateFormat dateFormat = new ExcelStyleDateFormatter();
+	private DateFormat dateFormat;
 
 	public ExcelFileReader(FileInputStream fis, String fileExtension,
-			List<String> sheetNameList) {
+			List<String> sheetNameList, String dateFormatString) {
 		this.fis = fis;
 		this.fileExtension = fileExtension;
 		this.workSheetList = sheetNameList;
+		this.dateFormat = new SimpleDateFormat(dateFormatString);
 	}
 
 	public List<String> readLine() throws IOException {

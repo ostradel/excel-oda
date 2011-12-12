@@ -13,6 +13,7 @@ public class ExcelODAConstants {
 	public static final String INC_COLUMN_NAME_NO = "NO";
 	
 	public static final String CONN_WORKSHEETS_PROP = "WORKSHEETS";
+	public static final String CONN_DATE_FORMAT_PROP = "DATEFORMAT";
 	
 	public static final String DELIMITER_SPACE = " "; //$NON-NLS-1$
 	public static final char DELIMITER_DOUBLEQUOTE = '"';
@@ -26,4 +27,5 @@ public class ExcelODAConstants {
 	public static final String KEYWORD_FROM = "FROM"; //$NON-NLS-1$
 	public static final String EMPTY_STRING = "";
 	public static final String ALL_SHEETS = "ALL";
+	public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 }

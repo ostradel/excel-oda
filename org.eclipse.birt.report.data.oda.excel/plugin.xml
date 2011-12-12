@@ -95,8 +95,21 @@
                   name="WORKSHEETS"
                   canInherit="true"
                   type="string"/>
+            <property
+                  allowsEmptyValueAsNull="true"
+                  canInherit="true"
+                  defaultDisplayName="dataset.property.worksheets.dateFormat"
+                  defaultValue="yyyy-MM-dd"
+                  isEncryptable="false"
+                  name="DATEFORMAT"
+                  type="string">
+            </property>
          </propertyGroup>
             <propertyVisibility name="WORKSHEETS" visibility="change"/>
+            <propertyVisibility
+                  name="DATEFORMAT"
+                  visibility="change">
+            </propertyVisibility>
          </properties>
       </dataSet>
    </extension>
