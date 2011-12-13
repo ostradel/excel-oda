@@ -35,7 +35,12 @@ public class ExcelFileReader {
 	private int maxRowsInAllSheet;
 	private int maxRowsInThisSheet;
 	private int currentRowIndex = 0;
-	
+	private int maxColumnIndex = 0;
+
+	public void setMaxColumnIndex(int maxColumnIndex) {
+		this.maxColumnIndex = maxColumnIndex;
+	}
+
 	private DateFormat dateFormat;
 
 	public ExcelFileReader(FileInputStream fis, String fileExtension,
@@ -59,9 +64,10 @@ public class ExcelFileReader {
 
 		List<String> rowData = new ArrayList<String>();
 
-		short minColIx = row.getFirstCellNum();
-		short maxColIx = row.getLastCellNum();
-		for (short colIx = minColIx; colIx < maxColIx; colIx++) {
+		if (maxColumnIndex == 0)
+			maxColumnIndex = row.getLastCellNum();
+		
+		for (short colIx = 0; colIx < maxColumnIndex; colIx++) {
 			Cell cell = row.getCell(colIx);
 			rowData.add(getCellValue(cell));
 		}
