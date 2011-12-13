@@ -246,6 +246,7 @@ public class ExcelFileSource {
 						continue;
 					}
 					this.originalColumnNames = getColumnNameArray(columeNameLine);
+					excelFileReader.setMaxColumnIndex(columeNameLine.size());
 					initNameIndexMap();
 				}
 
