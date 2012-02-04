@@ -50,7 +50,6 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -93,8 +92,7 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 			Messages.getString("datatypes.decimal"), //$NON-NLS-1$
 			Messages.getString("datatypes.float"), //$NON-NLS-1$
 			Messages.getString("datatypes.integer"), //$NON-NLS-1$
-			Messages.getString("datatypes.date"), //$NON-NLS-1$
-			Messages.getString("datatypes.time"), //$NON-NLS-1$
+			Messages.getString("datatypes.date"), //$NON-NLS-1$			
 			Messages.getString("datatypes.string"), //$NON-NLS-1$
 			Messages.getString("datatypes.boolean") //$NON-NLS-1$
 	};
@@ -184,10 +182,6 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 				Messages.getString("datatypes.string")); //$NON-NLS-1$
 		dataTypeDisplayNameMap.put(new Integer(91),
 				Messages.getString("datatypes.date")); //$NON-NLS-1$
-		dataTypeDisplayNameMap.put(new Integer(92),
-				Messages.getString("datatypes.time")); //$NON-NLS-1$
-		dataTypeDisplayNameMap.put(new Integer(93),
-				Messages.getString("datatypes.dateTime")); //$NON-NLS-1$
 		dataTypeDisplayNameMap.put(new Integer(2),
 				Messages.getString("datatypes.decimal")); //$NON-NLS-1$
 		dataTypeDisplayNameMap.put(new Integer(16),
@@ -199,9 +193,6 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 		dataTypeValueMape.put(Messages.getString("datatypes.string"), //$NON-NLS-1$
 				"STRING"); //$NON-NLS-1$
 		dataTypeValueMape.put(Messages.getString("datatypes.date"), "DATE"); //$NON-NLS-1$ //$NON-NLS-2$
-		dataTypeValueMape.put(Messages.getString("datatypes.time"), "TIME"); //$NON-NLS-1$ //$NON-NLS-2$
-		dataTypeValueMape.put(Messages.getString("datatypes.dateTime"), //$NON-NLS-1$
-				"TIMESTAMP"); //$NON-NLS-1$
 		dataTypeValueMape.put(Messages.getString("datatypes.decimal"), //$NON-NLS-1$
 				"BIGDECIMAL"); //$NON-NLS-1$
 		dataTypeValueMape.put(Messages.getString("datatypes.boolean"), //$NON-NLS-1$
@@ -653,7 +644,7 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 
 					public Object[] getElements(Object inputElement) {
 						if (inputElement instanceof java.util.List) {
-							return ((java.util.List) inputElement).toArray();
+							return ((java.util.List<?>) inputElement).toArray();
 						}
 
 						return new Object[0];

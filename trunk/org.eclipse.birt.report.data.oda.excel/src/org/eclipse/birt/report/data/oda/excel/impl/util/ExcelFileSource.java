@@ -414,7 +414,8 @@ public class ExcelFileSource {
 			if (this.excelFileReader == null) {
 				String dataFilePath = findDataFileAbsolutePath();
 				this.excelFileReader = new ExcelFileReader(new FileInputStream(
-						dataFilePath), this.fileExtension, this.sheetNameList, dateFormatString);
+						dataFilePath), this.fileExtension, this.sheetNameList,
+						dateFormatString);
 			}
 
 		} catch (IOException e) {

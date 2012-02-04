@@ -8,22 +8,28 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.birt.report.data.oda.excel.ExcelODAConstants;
+import org.eclipse.birt.report.data.oda.excel.impl.i18n.Messages;
+import org.eclipse.datatools.connectivity.oda.OdaException;
+import org.xml.sax.SAXException;
 
 public class ExcelFileReader {
 
 	private FileInputStream fis;
 	private String fileExtension;
 	private List<String> workSheetList;
+	static LinkedHashMap<String, String> xlsxWorkSheetList;
 	private int currentSheetIndex = 0;
 
 	private Workbook workBook;
@@ -36,6 +42,8 @@ public class ExcelFileReader {
 	private int maxRowsInThisSheet;
 	private int currentRowIndex = 0;
 	private int maxColumnIndex = 0;
+	private XlsxRowCallBack callback;
+	private XlsxFileReader xlsxread;
 
 	public void setMaxColumnIndex(int maxColumnIndex) {
 		this.maxColumnIndex = maxColumnIndex;
@@ -51,7 +59,7 @@ public class ExcelFileReader {
 		this.dateFormat = new SimpleDateFormat(dateFormatString);
 	}
 
-	public List<String> readLine() throws IOException {
+	public List<String> readLine() throws IOException, OdaException {
 		if (!isInitialised)
 			initialise();
 
@@ -59,42 +67,77 @@ public class ExcelFileReader {
 			if (!initialiseNextSheet())
 				return null;
 		}
-
-		Row row = sheet.getRow(currentRowIndex);
-
 		List<String> rowData = new ArrayList<String>();
+		if (!isXlsxFile(fileExtension)) {
+			Row row = sheet.getRow(currentRowIndex);
+			if (row != null) {
+				if (maxColumnIndex == 0)
+					maxColumnIndex = row.getLastCellNum();
 
-		if (maxColumnIndex == 0)
-			maxColumnIndex = row.getLastCellNum();
-		
-		for (short colIx = 0; colIx < maxColumnIndex; colIx++) {
-			Cell cell = row.getCell(colIx);
-			rowData.add(getCellValue(cell));
+				for (short colIx = 0; colIx < maxColumnIndex; colIx++) {
+					Cell cell = row.getCell(colIx);
+					rowData.add(getCellValue(cell));
+				}
+
+			} else {
+				return null;
+			}
+		} else {
+			rowData = callback.getRow(currentRowIndex);
 		}
 
 		currentRowIndex++;
 		return rowData;
+
 	}
 
 	public void close() throws IOException {
 		this.fis.close();
 	}
 
-	private void initialise() throws IOException {
-		workBook = isXlsxFile(fileExtension) ? new XSSFWorkbook(fis)
-				: new HSSFWorkbook(fis);
-		formulaEvaluator = workBook.getCreationHelper()
-				.createFormulaEvaluator();
-		workBook.setMissingCellPolicy(Row.RETURN_NULL_AND_BLANK);
-		sheet = workBook.getSheet(workSheetList.get(currentSheetIndex));
-		maxRowsInThisSheet = sheet.getPhysicalNumberOfRows();
+	private void initialise() throws IOException, OdaException {
+		try {
+			if (isXlsxFile(fileExtension)) {
+				xlsxread = new XlsxFileReader(fis);
+				callback = new XlsxRowCallBack();
+				LinkedHashMap<String, String> sheetMap = xlsxread
+						.getSheetNames();
+				String rid = sheetMap.get(workSheetList.get(currentSheetIndex));
+				xlsxread.processSheet(rid, callback);
+				maxRowsInThisSheet = callback.getMaxRowsInSheet();
 
-		for (String sheetName : workSheetList) {
-			Sheet localSheet = workBook.getSheet(sheetName);
-			maxRowsInAllSheet += localSheet.getPhysicalNumberOfRows();
+				for (String sheetName : workSheetList) {
+					rid = sheetMap.get(sheetName);
+					if(rid == null)
+						throw new OdaException(Messages.getString("invalid_sheet_name"));
+					
+					XlsxRowCallBack newCallback = new XlsxRowCallBack();
+					xlsxread.processSheet(rid, newCallback);
+					maxRowsInAllSheet += newCallback.getMaxRowsInSheet();
+				}
+
+			} else {
+
+				workBook = new HSSFWorkbook(fis);
+				formulaEvaluator = workBook.getCreationHelper()
+						.createFormulaEvaluator();
+				workBook.setMissingCellPolicy(Row.RETURN_NULL_AND_BLANK);
+				sheet = workBook.getSheet(workSheetList.get(currentSheetIndex));
+				maxRowsInThisSheet = sheet.getPhysicalNumberOfRows();
+
+				for (String sheetName : workSheetList) {
+					Sheet localSheet = workBook.getSheet(sheetName);
+					maxRowsInAllSheet += localSheet.getPhysicalNumberOfRows();
+				}
+			}
+			isInitialised = true;
+		} catch (NullPointerException e) {
+			throw new OdaException(e);
+		} catch (OpenXML4JException e) {
+			throw new OdaException(e);
+		} catch (SAXException e) {
+			throw new OdaException(e);
 		}
-
-		isInitialised = true;
 	}
 
 	private boolean initialiseNextSheet() {
@@ -163,7 +206,7 @@ public class ExcelFileReader {
 		}
 	}
 
-	public int getMaxRows() throws IOException {
+	public int getMaxRows() throws IOException, OdaException {
 		if (!isInitialised)
 			initialise();
 		return maxRowsInAllSheet;
@@ -177,15 +220,27 @@ public class ExcelFileReader {
 		List<String> sheetNames = new ArrayList<String>();
 		try {
 			fis = new FileInputStream(file);
-			Workbook workBook = isXlsxFile(extension) ? new XSSFWorkbook(fis)
-					: new HSSFWorkbook(fis);
-			for (int i = 0; i < workBook.getNumberOfSheets(); i++) {
-				sheetNames.add(workBook.getSheetName(i));
+
+			if (isXlsxFile(extension)) {
+				XlsxFileReader poiRdr = new XlsxFileReader(fis);
+				xlsxWorkSheetList = poiRdr.getSheetNames();
+				for (Map.Entry<String, String> entry : xlsxWorkSheetList
+						.entrySet()) {
+					sheetNames.add(entry.getKey());
+				}
+			} else {
+				Workbook workBook = new HSSFWorkbook(fis);
+				for (int i = 0; i < workBook.getNumberOfSheets(); i++) {
+					sheetNames.add(workBook.getSheetName(i));
+				}
 			}
 		} catch (FileNotFoundException e) {
 			// do nothing
 		} catch (IOException e) {
 			// do nothing
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		return sheetNames;
 	}

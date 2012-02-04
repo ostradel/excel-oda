@@ -14,10 +14,8 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.regex.Pattern;
 
 import org.eclipse.birt.report.data.oda.excel.impl.i18n.Messages;
-import org.eclipse.birt.report.data.oda.excel.impl.util.DateUtil;
 import org.eclipse.birt.report.data.oda.excel.impl.util.ExcelFileSource;
 import org.eclipse.datatools.connectivity.oda.IBlob;
 import org.eclipse.datatools.connectivity.oda.IClob;
@@ -43,7 +41,7 @@ public class ResultSet implements IResultSet {
 	private ExcelFileSource excelFileSource;
 	// Boolean which marks whether it is successful of last call to getXXX();
 	private boolean wasNull = false;
-	// a counter that counts the total number of rows read from the flatfile
+	// a counter that counts the total number of rows read from the excel file
 	private int fetchAccumulator = 0;
 
 	private boolean overFlow = false;
@@ -51,8 +49,6 @@ public class ResultSet implements IResultSet {
 	private static ULocale JRE_DEFAULT_LOCALE = ULocale.getDefault();
 
 	private DateFormat dateFormat;
-	private static Pattern pattern1 = Pattern.compile("\\QT\\E"); //$NON-NLS-3$
-	private static Pattern pattern2 = Pattern.compile("\\QZ\\E"); //$NON-NLS-3$
 
 	/**
 	 * Constructor
@@ -66,7 +62,8 @@ public class ResultSet implements IResultSet {
 		this.excelFileSource = excelSource;
 		this.resultSetMetaData = rsmd;
 		this.maxRows = this.excelFileSource.getMaxRowsToRead(this.maxRows);
-		this.dateFormat = new SimpleDateFormat(this.excelFileSource.getDateFormatString());
+		this.dateFormat = new SimpleDateFormat(
+				this.excelFileSource.getDateFormatString());
 	}
 
 	/*
@@ -114,7 +111,6 @@ public class ResultSet implements IResultSet {
 
 		if (cursor == this.sourceData.length - 1) {
 			sourceData = this.excelFileSource.getSourceData();
-
 			cursor = CURSOR_INITIAL_VALUE;
 
 			if (sourceData.length == 0) {
@@ -227,7 +223,7 @@ public class ResultSet implements IResultSet {
 	 * @see org.eclipse.datatools.connectivity.oda.IResultSet#getTime(int)
 	 */
 	public Time getTime(int index) throws OdaException {
-		return stringToTime(getString(index));
+		throw new UnsupportedOperationException();
 	}
 
 	/*
@@ -236,14 +232,14 @@ public class ResultSet implements IResultSet {
 	 * )
 	 */
 	public Time getTime(String columnName) throws OdaException {
-		return stringToTime(getString(columnName));
+		throw new UnsupportedOperationException();
 	}
 
 	/*
 	 * @see org.eclipse.datatools.connectivity.oda.IResultSet#getTimestamp(int)
 	 */
 	public Timestamp getTimestamp(int index) throws OdaException {
-		return stringToTimestamp(getString(index));
+		throw new UnsupportedOperationException();
 	}
 
 	/*
@@ -252,7 +248,7 @@ public class ResultSet implements IResultSet {
 	 * .String)
 	 */
 	public Timestamp getTimestamp(String columnName) throws OdaException {
-		return stringToTimestamp(getString(columnName));
+		throw new UnsupportedOperationException();
 	}
 
 	/*
@@ -455,58 +451,6 @@ public class ResultSet implements IResultSet {
 			}
 		}
 
-		this.wasNull = true;
-		return null;
-	}
-
-	/**
-	 * Transform a String value to a Time value
-	 * 
-	 * @param stringValue
-	 *            String value
-	 * @return Corresponding Time value
-	 * @throws OdaException
-	 */
-	private Time stringToTime(String stringValue) throws OdaException {
-		if (stringValue != null) {
-			try {
-				return DateUtil.toSqlTime(stringValue);
-			} catch (OdaException oe) {
-			}
-		}
-		this.wasNull = true;
-		return null;
-	}
-
-	/**
-	 * Transform a String value to a Timestamp value
-	 * 
-	 * @param stringValue
-	 *            String value
-	 * @return Corresponding Timestamp value
-	 * @throws OdaException
-	 */
-	private Timestamp stringToTimestamp(String stringValue) throws OdaException {
-		if (stringValue != null) {
-			try {
-				String value = pattern1.matcher(stringValue).replaceAll(" "); //$NON-NLS-1$ //$NON-NLS-2$
-				value = pattern2.split(value)[0];
-				return Timestamp.valueOf(value);
-			} catch (IllegalArgumentException e) {
-				try {
-					long timeMills = Long.valueOf(stringValue).longValue();
-					return new Timestamp(timeMills);
-				} catch (NumberFormatException e1) {
-					try {
-						java.util.Date date = DateUtil.toDate(stringValue);
-						Timestamp timeStamp = new Timestamp(date.getTime());
-						return timeStamp;
-					} catch (OdaException ex) {
-						// ignore
-					}
-				}
-			}
-		}
 		this.wasNull = true;
 		return null;
 	}

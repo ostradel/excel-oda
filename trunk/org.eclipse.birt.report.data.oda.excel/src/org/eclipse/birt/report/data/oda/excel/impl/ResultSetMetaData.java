@@ -27,7 +27,6 @@ public class ResultSetMetaData implements IResultSetMetaData {
 	
 	private String[] columnNames = null;
 	private String[] columnTypeNames = null;
-	private String[] columnLabels;
 	
 	private Map<String, Integer> columnNameIndexMap = new HashMap<String, Integer>();
 
@@ -47,7 +46,6 @@ public class ResultSetMetaData implements IResultSetMetaData {
 		
 		this.columnNames = rsmdHelper.getColumnNames( );
 		this.columnTypeNames = rsmdHelper.getColumnTypes( );
-		this.columnLabels = rsmdHelper.getColumnLabels( );
 		
 		for (int i = 0; i < columnNames.length; i++)
 		{
