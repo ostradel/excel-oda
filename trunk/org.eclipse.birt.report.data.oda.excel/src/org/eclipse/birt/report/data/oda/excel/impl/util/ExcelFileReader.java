@@ -44,6 +44,7 @@ public class ExcelFileReader {
 	private int maxColumnIndex = 0;
 	private XlsxRowCallBack callback;
 	private XlsxFileReader xlsxread;
+	Map<String, String> xlsxSheetRidNameMap;
 
 	public void setMaxColumnIndex(int maxColumnIndex) {
 		this.maxColumnIndex = maxColumnIndex;
@@ -100,17 +101,17 @@ public class ExcelFileReader {
 			if (isXlsxFile(fileExtension)) {
 				xlsxread = new XlsxFileReader(fis);
 				callback = new XlsxRowCallBack();
-				LinkedHashMap<String, String> sheetMap = xlsxread
-						.getSheetNames();
-				String rid = sheetMap.get(workSheetList.get(currentSheetIndex));
+				xlsxSheetRidNameMap = xlsxread.getSheetNames();
+				String rid = xlsxSheetRidNameMap.get(workSheetList.get(currentSheetIndex));
 				xlsxread.processSheet(rid, callback);
 				maxRowsInThisSheet = callback.getMaxRowsInSheet();
 
 				for (String sheetName : workSheetList) {
-					rid = sheetMap.get(sheetName);
-					if(rid == null)
-						throw new OdaException(Messages.getString("invalid_sheet_name"));
-					
+					rid = xlsxSheetRidNameMap.get(sheetName);
+					if (rid == null)
+						throw new OdaException(
+								Messages.getString("invalid_sheet_name"));
+
 					XlsxRowCallBack newCallback = new XlsxRowCallBack();
 					xlsxread.processSheet(rid, newCallback);
 					maxRowsInAllSheet += newCallback.getMaxRowsInSheet();
@@ -140,17 +141,28 @@ public class ExcelFileReader {
 		}
 	}
 
-	private boolean initialiseNextSheet() {
+	private boolean initialiseNextSheet() throws IOException, OdaException {
 		if (workSheetList.size() <= ++currentSheetIndex) {
 			return false;
 		}
-
-		do {
-			sheet = workBook.getSheet(workSheetList.get(currentSheetIndex));
-			maxRowsInThisSheet = sheet.getPhysicalNumberOfRows();
-		} while (maxRowsInThisSheet == 0
-				&& (workSheetList.size() < ++currentSheetIndex));
-
+		if (isXlsxFile(fileExtension)) {
+			try {
+				String rid = xlsxSheetRidNameMap.get(workSheetList.get(currentSheetIndex));
+				callback = new XlsxRowCallBack();
+				xlsxread.processSheet(rid, callback);
+				maxRowsInThisSheet = callback.getMaxRowsInSheet();
+			} catch (OpenXML4JException e) {
+				throw new OdaException(e);
+			} catch (SAXException e) {
+				throw new OdaException(e);
+			}
+		} else {
+			do {
+				sheet = workBook.getSheet(workSheetList.get(currentSheetIndex));
+				maxRowsInThisSheet = sheet.getPhysicalNumberOfRows();
+			} while (maxRowsInThisSheet == 0
+					&& (workSheetList.size() < ++currentSheetIndex));
+		}
 		if (maxRowsInThisSheet == 0)
 			return false;
 

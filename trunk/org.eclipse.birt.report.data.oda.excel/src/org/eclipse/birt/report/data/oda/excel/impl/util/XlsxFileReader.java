@@ -101,11 +101,9 @@ public class XlsxFileReader {
 		public void startElement(String uri, String localName, String qName,
 				Attributes attributes) throws SAXException {
 			// c => cell
-			System.out.println("START: " + qName);
 			if (qName.equals("c")) {
 				// Figure out if the value is an index in the SST
 				String type = attributes.getValue("t");
-				System.out.println(type);
 				if (type == null) {
 					cellType = CellType.num;
 				} else if (type.equals("s")) {
@@ -126,7 +124,6 @@ public class XlsxFileReader {
 
 		public void endElement(String uri, String localName, String name)
 				throws SAXException {
-			System.out.println("END: " + name);
 			if (name.equals("row")) {
 				callback.handleRow(values);
 				values.clear();

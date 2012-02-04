@@ -17,9 +17,6 @@ public class XlsxRowCallBack implements RowCallBack {
 		values.toArray(valArray);
 
 		xlsxRowData.add(valArray);
-		for(Object val : values)
-		System.out.print(val + " ");
-		System.out.println();
 	}
 
 	public ArrayList<String> initArrayList(String[] strings) {
