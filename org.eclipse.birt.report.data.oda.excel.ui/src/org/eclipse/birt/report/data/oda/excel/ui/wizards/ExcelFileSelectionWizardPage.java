@@ -88,7 +88,6 @@ public class ExcelFileSelectionWizardPage extends DataSetWizardPage implements
 	private String dateFormat = ExcelODAConstants.DEFAULT_DATE_FORMAT;
 
 	private static String[] dataTypeDisplayNames = new String[] {
-			Messages.getString("datatypes.dateTime"), //$NON-NLS-1$
 			Messages.getString("datatypes.decimal"), //$NON-NLS-1$
 			Messages.getString("datatypes.float"), //$NON-NLS-1$
 			Messages.getString("datatypes.integer"), //$NON-NLS-1$
