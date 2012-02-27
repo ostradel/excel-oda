@@ -14,6 +14,8 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import org.eclipse.birt.report.data.oda.excel.impl.i18n.Messages;
 import org.eclipse.birt.report.data.oda.excel.impl.util.ExcelFileSource;
@@ -49,7 +51,10 @@ public class ResultSet implements IResultSet {
 	private static ULocale JRE_DEFAULT_LOCALE = ULocale.getDefault();
 
 	private DateFormat dateFormat;
-
+	/** The Excel epoch in milliseconds */
+	final static private long EXCEL_EPOCH_MILLIS = -2209161600000L;
+	/** The number of milliseconds in a day */
+	final static private BigDecimal MILLIS_IN_DAY = new BigDecimal(24 * 60 * 60 * 1000);
 	/**
 	 * Constructor
 	 * 
@@ -367,7 +372,7 @@ public class ResultSet implements IResultSet {
 			} catch (NumberFormatException e) {
 				try {
 					Number number = NumberFormat
-							.getInstance(JRE_DEFAULT_LOCALE).parse(stringValue);
+					.getInstance(JRE_DEFAULT_LOCALE).parse(stringValue);
 					if (number != null) {
 						return number.intValue();
 					}
@@ -393,7 +398,7 @@ public class ResultSet implements IResultSet {
 			} catch (NumberFormatException e) {
 				try {
 					Number number = NumberFormat
-							.getInstance(JRE_DEFAULT_LOCALE).parse(stringValue);
+					.getInstance(JRE_DEFAULT_LOCALE).parse(stringValue);
 					if (number != null) {
 						return number.doubleValue();
 					}
@@ -419,7 +424,7 @@ public class ResultSet implements IResultSet {
 			} catch (NumberFormatException e) {
 				try {
 					Number number = NumberFormat
-							.getInstance(JRE_DEFAULT_LOCALE).parse(stringValue);
+					.getInstance(JRE_DEFAULT_LOCALE).parse(stringValue);
 					if (number != null) {
 						return new BigDecimal(number.toString());
 					}
@@ -441,13 +446,20 @@ public class ResultSet implements IResultSet {
 	 */
 
 	private Date stringToDate(String stringValue) throws OdaException {
-		if (stringValue != null) {
+		if (stringValue != null && stringValue.length() > 0) {
 			try {
 				java.util.Date date = dateFormat.parse(stringValue);
 				return new Date(date.getTime());
 			} catch (ParseException e) {
-				throw new OdaException(Messages.getFormattedString(
-						"invalid_date_value", new String[] { stringValue }));
+				try{
+					return new Date (excelDateToDate(Double.parseDouble(stringValue)).getTime());
+
+
+				} catch( Exception ex){
+
+					throw new OdaException(Messages.getFormattedString(
+							"invalid_date_value", new String[] { stringValue }));
+				}
 			}
 		}
 
@@ -488,4 +500,55 @@ public class ResultSet implements IResultSet {
 		}
 		return Boolean.FALSE;
 	}
+
+
+	/**
+	 * Creates a Java Date object from an Excel numeric date value
+	 * @param number the Excel date to convert
+	 * @return the Date object corresponding to the specified numeric Excel date
+	 */
+	public static java.util.Date excelDateToDate(double number)
+	{
+		Calendar calendar = excelDateToCalendar(number, null);
+		return calendar.getTime();
+	}
+	/**
+	 * Creates an Java Calendar object from an Excel numeric date value
+	 * @param number the Excel date to convert
+	 * @param tz the time-zone to use, or null for the default time-zone
+	 * @return the Calendar object corresponding to the specified numeric date
+	 */
+	private static Calendar excelDateToCalendar(double number, TimeZone tz)
+	{
+		if (tz == null)
+		{
+			tz = TimeZone.getDefault();
+		}
+		Calendar calendar = Calendar.getInstance(tz);
+		long millis = excelDateToMilliseconds(number);
+		millis -= calendar.getTimeZone().getOffset(millis);
+		calendar.setTimeInMillis(millis);
+		//Excel considers 1900 to be a leap year.  Must correct for that.
+		final long dec311899 = -2209143600000L; //December 31, 1899
+		final long mar011900 = -2203873200000L; //March 1, 1900
+		if (millis >= dec311899 && millis < mar011900)
+		{
+			calendar.add(Calendar.DAY_OF_YEAR, 1);
+		}
+		return calendar;
+	}
+	/**
+	 * @param number the Excel date value to convert
+	 * @return the number of milliseconds since the 1970 (Java) epoch
+	 */
+	private static long excelDateToMilliseconds(double number)
+	{
+		long millis = (long)(number * MILLIS_IN_DAY.doubleValue());
+		millis += EXCEL_EPOCH_MILLIS;
+		return millis;
+	}	
+
+
+
+
 }

@@ -4,10 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,14 +47,11 @@ public class ExcelFileReader {
 		this.maxColumnIndex = maxColumnIndex;
 	}
 
-	private DateFormat dateFormat;
-
 	public ExcelFileReader(FileInputStream fis, String fileExtension,
 			List<String> sheetNameList, String dateFormatString) {
 		this.fis = fis;
 		this.fileExtension = fileExtension;
 		this.workSheetList = sheetNameList;
-		this.dateFormat = new SimpleDateFormat(dateFormatString);
 	}
 
 	public List<String> readLine() throws IOException, OdaException {
@@ -183,11 +177,10 @@ public class ExcelFileReader {
 		}
 
 		if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
-			if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
+			/*if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
 				Date date = cell.getDateCellValue();
 				return dateFormat.format(date);
-			}
-
+			}*/
 			return ((Double) cell.getNumericCellValue()).toString();
 		}
 
@@ -203,11 +196,10 @@ public class ExcelFileReader {
 			return ((Boolean) cell.getBooleanCellValue()).toString();
 
 		case Cell.CELL_TYPE_NUMERIC:
-			if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
+			/*if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell)) {
 				Date date = cell.getDateCellValue();
 				return dateFormat.format(date);
-			}
-
+			}*/
 			return ((Double) cell.getNumericCellValue()).toString();
 
 		case Cell.CELL_TYPE_STRING:
